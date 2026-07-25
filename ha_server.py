@@ -187,11 +187,14 @@ class Server:
         if self.config.bemfa.modified:
             self._clear_bemfa_modified()
 
+    def _config_path(self) -> Path:
+        return Path(os.environ.get("CUKTECH_CONFIG_PATH", str(Path(__file__).parent / "config.yaml")))
+
     def _clear_bemfa_modified(self):
         """Set bemfa.modified=false in config.yaml after topic re-registration."""
         try:
             import yaml
-            config_path = Path(__file__).parent / "config.yaml"
+            config_path = self._config_path()
             if config_path.exists():
                 with open(config_path) as f:
                     cfg = yaml.safe_load(f) or {}
@@ -541,7 +544,7 @@ class Server:
         # Persist to config.yaml so the change survives restart
         try:
             import yaml
-            config_path = Path(__file__).parent / "config.yaml"
+            config_path = self._config_path()
             if config_path.exists():
                 with open(config_path) as f:
                     cfg = yaml.safe_load(f) or {}
@@ -918,7 +921,7 @@ class Server:
             return web.json_response({"ok": False, "error": "invalid JSON"}, status=400)
 
         config_data = data.get("config", {})
-        config_path = Path(__file__).parent / "config.yaml"
+        config_path = self._config_path()
 
         try:
             import yaml

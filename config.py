@@ -21,7 +21,7 @@ LOG_LEVELS = {
 
 def _load_yaml_config():
     """Load config from YAML file if exists."""
-    config_path = Path(__file__).parent / "config.yaml"
+    config_path = Path(os.environ.get("CUKTECH_CONFIG_PATH", str(Path(__file__).parent / "config.yaml")))
     if not config_path.exists():
         config_path = Path.cwd() / "config.yaml"
     if not config_path.exists():

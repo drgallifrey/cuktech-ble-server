@@ -7,9 +7,9 @@ services:
     privileged: true
     volumes:
       - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
-      - ./config.yaml:/app/config.yaml
       - ./cuktech-data:/data
     environment:
+      - CUKTECH_CONFIG_PATH=/data/config.yaml
       - CUKTECH_SERVER_PORT=8199
       - CUKTECH_HISTORY_DB_PATH=/data/port_history.db
       - TZ=Asia/Shanghai
