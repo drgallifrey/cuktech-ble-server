@@ -93,6 +93,8 @@ vim config.yaml
 
 镜像内置默认 `config.yaml`（来自 `config.yaml.example`），可通过环境变量或挂载卷覆盖配置。
 
+> **注意**：使用 `-v config.yaml:/app/config.yaml` 挂载时**不要加 `:ro`**（只读），否则 Web 页面保存配置会失败。配置文件必须可写，这样才能通过 `http://<IP>:8199/config.html` 在线修改并持久化。
+
 #### 使用默认配置启动（推荐）：
 
 ```bash
@@ -139,7 +141,7 @@ docker run -d \
   --network host \
   --privileged \
   --restart unless-stopped \
-  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/config.yaml:/app/config.yaml \
   -v $(pwd)/data:/data \
   -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro \
   -e CUKTECH_HISTORY_DB_PATH=/data/port_history.db \

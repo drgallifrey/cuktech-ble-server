@@ -81,6 +81,7 @@ class BemfaConfig:
     name_c3: str = "C口3开关"
     name_a: str = "USB-A开关"
     name_ble: str = "蓝牙开关"
+    modified: bool = False  # set true when names change, triggers topic delete+recreate on next start
 
 
 @dataclass
@@ -176,6 +177,7 @@ def load_config() -> Config:
         name_c3=bemfa_cfg.get("name_c3", "C口3开关"),
         name_a=bemfa_cfg.get("name_a", "USB-A开关"),
         name_ble=bemfa_cfg.get("name_ble", "蓝牙开关"),
+        modified=bemfa_cfg.get("modified", False),
     )
 
     return Config(ble=ble, mqtt=mqtt, server=server, bemfa=bemfa)

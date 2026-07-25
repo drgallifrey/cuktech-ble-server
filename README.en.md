@@ -58,7 +58,7 @@ Then open `http://<server-ip>:8199/config.html`:
 ```bash
 docker run -d \
   --name cuktech-ble --network host --privileged --restart unless-stopped \
-  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/config.yaml:/app/config.yaml \
   -v $(pwd)/data:/data \
   -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro \
   -e CUKTECH_HISTORY_DB_PATH=/data/port_history.db \
@@ -67,6 +67,8 @@ docker run -d \
 ```
 
 Image ships with a default `config.yaml` (from `config.yaml.example`). You can override settings via volume mount or environment variables.
+
+> **Important**: When mounting config.yaml with `-v`, **do NOT add `:ro`** (read-only). The config file must be writable so `http://<IP>:8199/config.html` can save changes back to the host and persist across restarts.
 
 #### Run with default config (quick try):
 
@@ -125,7 +127,7 @@ docker run -d \
   --network host \
   --privileged \
   --restart unless-stopped \
-  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/config.yaml:/app/config.yaml \
   -v $(pwd)/data:/data \
   -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro \
   -e CUKTECH_HISTORY_DB_PATH=/data/port_history.db \
