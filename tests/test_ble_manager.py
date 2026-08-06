@@ -60,31 +60,40 @@ class TestBLEManagerInit:
 
 
 class TestReconnectDelay:
-    """Test exponential backoff delay calculation."""
+    """Test exponential backoff delay calculation with jitter."""
 
     def test_initial_delay(self):
-        """Test initial delay is base delay."""
+        """Test initial delay is base delay (no jitter for delay <= 1.0)."""
         mgr = make_manager()
         mgr._reconnect_attempts = 0
         assert mgr._get_reconnect_delay() == 1.0
 
     def test_exponential_increase(self):
-        """Test delay increases exponentially."""
+        """Test delay increases exponentially within jitter range."""
         mgr = make_manager()
         mgr._reconnect_attempts = 3
-        assert mgr._get_reconnect_delay() == 8.0
+        # base = 2^3 = 8, jitter ±25% = ±2.0 → range [6.0, 10.0]
+        for _ in range(50):
+            delay = mgr._get_reconnect_delay()
+            assert 6.0 <= delay <= 10.0, f"delay {delay} outside range [6.0, 10.0]"
 
     def test_max_delay_cap(self):
-        """Test delay is capped at max."""
+        """Test delay is capped at max (with jitter)."""
         mgr = make_manager()
         mgr._reconnect_attempts = 10
-        assert mgr._get_reconnect_delay() == 300.0
+        # base capped at 300, jitter ±25% = ±75 → range [225, 375]
+        for _ in range(50):
+            delay = mgr._get_reconnect_delay()
+            assert 225 <= delay <= 375, f"delay {delay} outside range [225, 375]"
 
     def test_attempts_capped(self):
         """Test attempts are capped at 10 for exponent."""
         mgr = make_manager()
         mgr._reconnect_attempts = 100
-        assert mgr._get_reconnect_delay() == 300.0
+        # Same as attempts=10 → range [225, 375]
+        for _ in range(50):
+            delay = mgr._get_reconnect_delay()
+            assert 225 <= delay <= 375, f"delay {delay} outside range [225, 375]"
 
 
 class TestPublishMethods:
