@@ -1180,6 +1180,10 @@ class BLEManager:
                         self.ctrl.wait_notify("cmd_recv", timeout=3.0), timeout=5.0)
                     if frame:
                         await self._try_process_inline_frame(frame)
+                except ConnectionError:
+                    # Session is stale (consecutive decrypt failures) — let it
+                    # propagate so the caller reconnects instead of swallowing it.
+                    raise
                 except (asyncio.TimeoutError, Exception) as e:
                     _LOGGER.warning("Multiframe drain stopped at frame %d/%d: %s", i+1, frame_count, e)
                     break

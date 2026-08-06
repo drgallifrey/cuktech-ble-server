@@ -209,6 +209,9 @@ class TestHandleMultiframe:
         mgr.ctrl = MagicMock()
         mgr.ctrl.client = MagicMock()
         mgr.ctrl.client.write_gatt_char = AsyncMock()
+        # Decrypt-failure recovery shouldn't interfere with the drain loop test:
+        # stub out inline processing so the drain only exercises wait_notify.
+        mgr._try_process_inline_frame = AsyncMock()
         call_count = 0
         async def fake_wait_notify(name, timeout=5.0):
             nonlocal call_count
@@ -501,6 +504,8 @@ class TestMultiframeBoundary:
         mgr.ctrl = MagicMock()
         mgr.ctrl.client = MagicMock()
         mgr.ctrl.client.write_gatt_char = AsyncMock()
+        # Stub inline processing so decrypt-failure recovery doesn't abort the drain.
+        mgr._try_process_inline_frame = AsyncMock()
         call_count = 0
 
         async def fake_wait_notify(name, timeout=5.0):
@@ -552,7 +557,7 @@ class TestDecryptFailure:
 
     @pytest.mark.asyncio
     async def test_decrypt_failure_count_increments(self):
-        """Test _decrypt_failures increments on repeated decrypt failures."""
+        """Test _decrypt_failures increments and triggers recovery at threshold 3."""
         mgr = make_manager()
         mgr.ctrl = MagicMock()
         mgr.ctrl.client = MagicMock()
@@ -566,8 +571,9 @@ class TestDecryptFailure:
         await mgr._handle_inline_data(data)
         assert mgr._decrypt_failures == 2
 
-        await mgr._handle_inline_data(data)
-        assert mgr._decrypt_failures == 3
+        # 3rd consecutive failure crosses the threshold → session stale raised
+        with pytest.raises(ConnectionError):
+            await mgr._handle_inline_data(data)
 
     @pytest.mark.asyncio
     async def test_decrypt_failure_resets_on_success(self):
